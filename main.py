@@ -2,59 +2,37 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# CSV 불러오기
-df = pd.read_csv('Mammals.csv')
+# CSV 파일 불러오기
+df = pd.read_csv("Mammals.csv")
 
-st.title("Mammals 데이터 분석 및 시각화")
+st.title("Mammals 데이터 시각화 (범주형/수치형 자동 지원)")
 
-# 데이터 미리보기
-st.subheader("포유류 데이터 미리보기")
-st.dataframe(df)
+# x, y 축 열 선택 (모든 열 포함)
+all_cols = df.columns.tolist()
+x_axis = st.selectbox("X축 선택", all_cols, index=0)
+y_axis = st.selectbox("Y축 선택", all_cols, index=1)
 
-# ---------------------- 필터링 -----------------------
-st.subheader("필터링 조건 선택")
+# 그래프 타입 자동 결정
+x_is_num = pd.api.types.is_numeric_dtype(df[x_axis])
+y_is_num = pd.api.types.is_numeric_dtype(df[y_axis])
 
-# 서식지(Habitat) 필터
-habitat_options = df['Habitat'].unique().tolist()
-selected_habitats = st.multiselect("서식지(Habitat) 선택", habitat_options, default=habitat_options)
-
-# 식습관(Diet) 필터
-diet_options = df['Diet'].unique().tolist()
-selected_diets = st.multiselect("식습관(Diet) 선택", diet_options, default=diet_options)
-
-# 수치형 범위 필터
-numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
-num_filter_col = st.selectbox("범위 필터할 수치 속성 선택", options=numeric_cols, index=0)
-min_val, max_val = float(df[num_filter_col].min()), float(df[num_filter_col].max())
-selected_range = st.slider(
-    f"{num_filter_col} 값 범위 선택", min_value=min_val, max_value=max_val,
-    value=(min_val, max_val)
-)
-
-# 필터 적용
-filtered_df = df[
-    (df['Habitat'].isin(selected_habitats)) &
-    (df['Diet'].isin(selected_diets)) &
-    (df[num_filter_col] >= selected_range[0]) &
-    (df[num_filter_col] <= selected_range[1])
-]
-
-st.markdown(f"**필터링 결과: {len(filtered_df)}종**")
-st.dataframe(filtered_df)
-
-# ---------------------- 그래프 -----------------------
-st.subheader("산점도 그래프 그리기")
-
-x_axis = st.selectbox("X축 선택", options=numeric_cols, index=0)
-y_axis = st.selectbox("Y축 선택", options=numeric_cols, index=1)
-
-if not filtered_df.empty:
-    fig = px.scatter(
-        filtered_df, x=x_axis, y=y_axis, text='Mammal',
-        color='Diet', size='Mass (kg)',
-        title=f"{x_axis} vs. {y_axis} (필터링 적용됨)"
-    )
+# 조건에 따른 그래프 그리기
+if x_is_num and y_is_num:
+    st.subheader("산점도 (Scatter)")
+    fig = px.scatter(df, x=x_axis, y=y_axis, color="Diet", text="Mammal")
     fig.update_traces(textposition='top center')
-    st.plotly_chart(fig, use_container_width=True)
+elif not x_is_num and y_is_num:
+    st.subheader("스트립 플롯 (Strip plot)")
+    fig = px.strip(df, x=x_axis, y=y_axis, color="Habitat", stripmode="overlay")
+    fig.update_traces(jitter=0.3, marker_size=10)
+elif x_is_num and not y_is_num:
+    st.subheader("수치형 → 범주형 스트립 플롯 (반대축)")
+    fig = px.strip(df, x=y_axis, y=x_axis, color="Habitat", orientation="h", stripmode="overlay")
+    fig.update_traces(jitter=0.3, marker_size=10)
 else:
-    st.warning("조건에 맞는 데이터가 없습니다. 필터를 조정해 주세요.")
+    st.subheader("두 범주형 변수 조합 빈도 막대그래프")
+    count_df = df.groupby([x_axis, y_axis]).size().reset_index(name='count')
+    fig = px.bar(count_df, x=x_axis, y='count', color=y_axis, barmode='group')
+
+# 그래프 출력
+st.plotly_chart(fig, use_container_width=True)
