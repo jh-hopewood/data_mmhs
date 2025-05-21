@@ -1,67 +1,45 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.express as px
 
-st.set_page_config(page_title="연령별 인구현황 시각화", layout="wide")
-st.title("2024년 4월 연령별 인구현황 시각화")
+# CSV 파일 읽기 (같은 폴더에 mammals.csv가 있어야 합니다)
+df = pd.read_csv('mammals.csv')
 
-# 파일 이름(같은 폴더에 두어야 함)
-남여파일 = '202504_202504_연령별인구현황_월간_남여.csv'
-전체파일 = '202504_202504_연령별인구현황_월간_계.csv'
+st.title("Mammals 데이터 분석 및 시각화")
 
-# 한글 인코딩으로 파일 읽기 (깨질 경우 cp949로 변경)
-try:
-    df_mf = pd.read_csv(남여파일, encoding="utf-8-sig")
-    df_total = pd.read_csv(전체파일, encoding="utf-8-sig")
-except:
-    df_mf = pd.read_csv(남여파일, encoding="cp949")
-    df_total = pd.read_csv(전체파일, encoding="cp949")
+# 데이터 미리보기
+st.subheader("포유류 데이터 미리보기")
+st.dataframe(df)
 
-st.subheader("남/여 인구 데이터 미리보기")
-st.dataframe(df_mf.head())
+# 그래프 선택
+st.subheader("그래프 그리기")
+graph_type = st.selectbox("그래프 유형을 선택하세요", ['수명/속도 산점도', '키/몸무게 산점도', '식성별 평균 키 막대그래프'])
 
-st.subheader("전체 인구 데이터 미리보기")
-st.dataframe(df_total.head())
+if graph_type == '수명/속도 산점도':
+    fig = px.scatter(
+        df, x='Speed (km/h)', y='LifeSpan (years)', text='Mammal',
+        color='Diet', size='Mass (kg)',
+        title='포유류 속도 vs. 수명 (식성, 몸무게별)'
+    )
+    fig.update_traces(textposition='top center')
+    st.plotly_chart(fig, use_container_width=True)
 
-# --- 연령별 인구 피라미드(남/여) ---
-st.header("연령별 인구 피라미드 (남/여)")
+elif graph_type == '키/몸무게 산점도':
+    fig = px.scatter(
+        df, x='Height (meters)', y='Mass (kg)', text='Mammal',
+        color='Order',
+        title='포유류 키 vs. 몸무게 (분류군별)'
+    )
+    fig.update_traces(textposition='top center')
+    st.plotly_chart(fig, use_container_width=True)
 
-# CSV 컬럼명에 맞게 수정(아래는 예시, 필요시 미리보기로 확인)
-연령컬럼 = "연령"
-남자컬럼 = "남자"
-여자컬럼 = "여자"
+elif graph_type == '식성별 평균 키 막대그래프':
+    avg_height = df.groupby('Diet')['Height (meters)'].mean().reset_index()
+    fig = px.bar(
+        avg_height, x='Diet', y='Height (meters)',
+        title='식성별 평균 키'
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-df_pyramid = df_mf[[연령컬럼, 남자컬럼, 여자컬럼]].copy()
-df_pyramid = df_pyramid.sort_values(by=연령컬럼)
-df_pyramid[남자컬럼] = df_pyramid[남자컬럼] * -1
-
-fig = go.Figure()
-fig.add_trace(go.Bar(
-    y=df_pyramid[연령컬럼],
-    x=df_pyramid[남자컬럼],
-    name='남자',
-    orientation='h'
-))
-fig.add_trace(go.Bar(
-    y=df_pyramid[연령컬럼],
-    x=df_pyramid[여자컬럼],
-    name='여자',
-    orientation='h'
-))
-fig.update_layout(
-    barmode='relative',
-    title='연령별 인구 피라미드 (2024.04)',
-    xaxis=dict(title='인구수'),
-    yaxis=dict(title='연령'),
-    height=700
-)
-st.plotly_chart(fig, use_container_width=True)
-
-# --- 연령별 전체 인구(꺾은선 그래프) ---
-st.header("연령별 전체 인구 (꺾은선 그래프)")
-
-전체_연령컬럼 = "연령"
-전체_총인구수 = "총인구수"
-
-df_total = df_total.sort_values(by=전체_연령컬럼)
-st.line_chart(df_total.set_index(전체_연령컬럼)[전체_총인구수])
+st.markdown("---")
+st.caption("예시: csv 파일명은 'mammals.csv'로 저장해 주세요.")
