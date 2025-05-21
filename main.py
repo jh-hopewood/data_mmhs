@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # CSV 파일 읽기 (같은 폴더에 mammals.csv가 있어야 합니다)
-df = pd.read_csv('Mammals.csv')
+df = pd.read_csv('mammals.csv')
 
 st.title("Mammals 데이터 분석 및 시각화")
 
