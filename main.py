@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# CSV 파일 불러오기
+# 1. CSV 파일 불러오기
 df = pd.read_csv('Mammals.csv')
 
 st.title("Mammals 데이터 분석: 사용자 선택형 그래프")
