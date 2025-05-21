@@ -2,44 +2,29 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# CSV 파일 읽기 (같은 폴더에 mammals.csv가 있어야 합니다)
-df = pd.read_csv('mammals.csv')
+# CSV 파일 불러오기
+df = pd.read_csv('Mammals.csv')
 
-st.title("Mammals 데이터 분석 및 시각화")
+st.title("Mammals 데이터 분석: 사용자 선택형 그래프")
 
 # 데이터 미리보기
 st.subheader("포유류 데이터 미리보기")
 st.dataframe(df)
 
-# 그래프 선택
-st.subheader("그래프 그리기")
-graph_type = st.selectbox("그래프 유형을 선택하세요", ['수명/속도 산점도', '키/몸무게 산점도', '식성별 평균 키 막대그래프'])
+# 수치형 컬럼만 추출 (산점도용)
+numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
 
-if graph_type == '수명/속도 산점도':
-    fig = px.scatter(
-        df, x='Speed (km/h)', y='LifeSpan (years)', text='Mammal',
-        color='Diet', size='Mass (kg)',
-        title='포유류 속도 vs. 수명 (식성, 몸무게별)'
-    )
-    fig.update_traces(textposition='top center')
-    st.plotly_chart(fig, use_container_width=True)
+# x축, y축 선택 위젯
+st.subheader("그래프 축 선택")
+x_axis = st.selectbox("X축으로 사용할 속성", options=numeric_cols, index=0)
+y_axis = st.selectbox("Y축으로 사용할 속성", options=numeric_cols, index=1)
 
-elif graph_type == '키/몸무게 산점도':
-    fig = px.scatter(
-        df, x='Height (meters)', y='Mass (kg)', text='Mammal',
-        color='Order',
-        title='포유류 키 vs. 몸무게 (분류군별)'
-    )
-    fig.update_traces(textposition='top center')
-    st.plotly_chart(fig, use_container_width=True)
-
-elif graph_type == '식성별 평균 키 막대그래프':
-    avg_height = df.groupby('Diet')['Height (meters)'].mean().reset_index()
-    fig = px.bar(
-        avg_height, x='Diet', y='Height (meters)',
-        title='식성별 평균 키'
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-st.markdown("---")
-st.caption("예시: csv 파일명은 'mammals.csv'로 저장해 주세요.")
+# 그래프 출력
+st.subheader(f"{x_axis} vs. {y_axis} 산점도")
+fig = px.scatter(
+    df, x=x_axis, y=y_axis, text='Mammal',
+    color='Diet', size='Mass (kg)',
+    title=f"{x_axis}과(와) {y_axis} 관계 시각화"
+)
+fig.update_traces(textposition='top center')
+st.plotly_chart(fig, use_container_width=True)
