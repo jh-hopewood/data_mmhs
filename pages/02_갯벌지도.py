@@ -6,6 +6,8 @@ import pydeck as pdk
 url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTLDdqQiCnYKjmGeqpUKowalBQRjCZgR0PGrjZ6eVyTs6v2Z-NCzL88neYl-w1S_iuhRJgVOGAbwvnx/pub?gid=0&single=true&output=csv"
 df = pd.read_csv(url)
 
+st.title("📍 우리나라 갯벌 위치")
+
 # Pydeck 차트 생성
 st.pydeck_chart(pdk.Deck(
     initial_view_state=pdk.ViewState(
