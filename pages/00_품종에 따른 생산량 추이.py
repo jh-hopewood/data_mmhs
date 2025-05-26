@@ -13,33 +13,26 @@ def load_data():
 df = load_data()
 품종목록 = df["품종"].unique().tolist()
 
-# 검색어 필터링
-검색어 = st.text_input("🔍 품종 이름 일부를 입력하세요", value="")
-필터링된_품종 = [p for p in 품종목록 if 검색어 in p]
+# ✨ 품종 직접 검색 및 다중 선택
+선택한_품종들 = st.multiselect("✅ 비교할 품종 선택 (검색 가능)", 품종목록)
 
-if 필터링된_품종:
-    선택한_품종들 = st.multiselect("✅ 비교할 품종 선택", 필터링된_품종)
+if 선택한_품종들:
+    plot_df = pd.DataFrame()
 
-    if 선택한_품종들:
-        plot_df = pd.DataFrame()
+    for 품종 in 선택한_품종들:
+        행 = df[df["품종"] == 품종].iloc[0, 2:]
+        년도 = 행.index.str.replace("년", "").astype(int)
+        생산량 = 행.values
+        tmp = pd.DataFrame({
+            "연도": 년도,
+            "생산량": 생산량,
+            "품종": 품종
+        })
+        plot_df = pd.concat([plot_df, tmp], ignore_index=True)
 
-        for 품종 in 선택한_품종들:
-            행 = df[df["품종"] == 품종].iloc[0, 2:]
-            년도 = 행.index.str.replace("년", "").astype(int)
-            생산량 = 행.values
-            tmp = pd.DataFrame({
-                "연도": 년도,
-                "생산량": 생산량,
-                "품종": 품종
-            })
-            plot_df = pd.concat([plot_df, tmp], ignore_index=True)
-
-        fig = px.line(plot_df, x="연도", y="생산량", color="품종", markers=True,
-                      title="선택한 품종의 연도별 생산량 비교")
-        fig.update_layout(xaxis=dict(dtick=1))
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("✅ 하나 이상의 품종을 선택해 주세요.")
+    fig = px.line(plot_df, x="연도", y="생산량", color="품종", markers=True,
+                  title="선택한 품종의 연도별 생산량 비교")
+    fig.update_layout(xaxis=dict(dtick=1))
+    st.plotly_chart(fig, use_container_width=True)
 else:
-    if 검색어:
-        st.warning("⚠️ 일치하는 품종이 없습니다.")
+    st.info("✅ 하나 이상의 품종을 선택해 주세요.")
