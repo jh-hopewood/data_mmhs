@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 st.set_page_config(page_title="생산량 추이 분석", layout="wide")
-st.title("📈 품종별 연도별 생산량 비교")
+st.title("📈 품종별 생산량 비교")
 
 @st.cache_data
 def load_data():
@@ -11,6 +11,27 @@ def load_data():
     return pd.read_csv(url)
 
 df = load_data()
+# 선택한 품종들의 총 생산량 계산
+총생산량_리스트 = []
+
+for 품종 in 선택한_품종들:
+    생산량합 = df[df["품종"] == 품종].iloc[0, 2:].sum()
+    총생산량_리스트.append({"품종": 품종, "총생산량": 생산량합})
+
+총생산량_df = pd.DataFrame(총생산량_리스트)
+
+# 총합 기준 내림차순 정렬 후 Top 10
+top10_df = 총생산량_df.sort_values(by="총생산량", ascending=False).head(10)
+
+# Plotly 막대그래프
+fig_top10 = px.bar(top10_df, x="품종", y="총생산량", title="총 생산량 Top 10 품종",
+                   labels={"총생산량": "총합 (톤)"})
+st.plotly_chart(fig_top10, use_container_width=True)
+
+
+
+
+#----------품종별 연도별 그래프 작성
 품종목록 = df["품종"].unique().tolist()
 
 # ✨ 품종 직접 검색 및 다중 선택
