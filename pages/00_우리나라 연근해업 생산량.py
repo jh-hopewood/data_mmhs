@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="품종별 생산량 분석", layout="wide")
-st.title("🐟 품종별 생산량 데이터 분석")
+st.set_page_config(page_title="우리나라 연근해업 생산량 확인", layout="wide")
+st.title("🐟 우리나라 연근해업 생산량 확인")
 
 # 📥 데이터 불러오기
 @st.cache_data
