@@ -1,7 +1,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pathlib import Path
 
+
+# 현재 파일 기준으로 data_set 폴더의 csv 경로를 안전하게 생성
+csv_path = Path(__file__).parent.parent / "data_set" / "Mammals.csv"
+df = pd.read_csv(csv_path)
+
+st.title("Mammals 데이터 시각화")
+# 이하 코드 유지
 # CSV 불러오기
 df = pd.read_csv("../data_set/Mammals.csv")
 
