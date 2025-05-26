@@ -9,9 +9,7 @@ csv_path = Path(__file__).parent.parent / "data_set" / "Mammals.csv"
 df = pd.read_csv(csv_path)
 
 st.title("Mammals 데이터 시각화")
-# 이하 코드 유지
-# CSV 불러오기
-df = pd.read_csv("../data_set/Mammals.csv")
+
 
 st.title("Mammals 데이터 시각화 (범주형/수치형 자동 지원 + 동물 이름 표시)")
 
